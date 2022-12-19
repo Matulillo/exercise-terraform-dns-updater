@@ -1,0 +1,9 @@
+{
+    "addresses": [
+        "1.1.1.1",
+		"1.1.1.10"
+    ],
+    "ttl": 300,
+    "zone": "example.com.",
+    "dns_record_type": "a"
+}

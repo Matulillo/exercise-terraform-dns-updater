@@ -1,0 +1,8 @@
+{
+    "addresses": [
+        "192.168.100.50"
+    ],
+    "ttl": 50,
+    "zone": "example.com.",
+    "dns_record_type": "a"
+}
