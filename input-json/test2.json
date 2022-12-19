@@ -3,7 +3,7 @@
         "192.168.200.20",
         "192.168.200.10"
     ],
-    "ttl": 20,
+    "ttl": 200,
     "zone": "example.com.",
     "dns_record_type": "a"
 }

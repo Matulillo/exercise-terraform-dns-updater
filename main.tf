@@ -1,18 +1,19 @@
 
 ##Terraform
-# This module creates DNS A-type records defined as JSON files. Each json file correspond to one DNS A record and contains all the necessary atributes to create an A record,
-# The json files are located under the folder ./input-json and works with any number of JSON files, it ignorea any other non-json file extensions. 
+# This module creates DNS A-type records defined as JSON files by using DNS Terraform provider. Each json file correspond to one DNS A record and contains all the necessary 
+# attributes.
+# The json files are located under the folder ./input-json and works with any number of JSON files, non-json files will be ignored. 
 # The DNS authoritative zone will always be example.com.  
 #
 ## Usage
-# The get the environment ready you need a DNS service that can be spun up via Docker either in the local machine or in a remote server by running the shell script 
+# The get the environment ready a DNS service has to be spun up via Docker either in the local machine or in a remote server by running the shell script
 # available under tests (tests/build-and-run.sh). Assume host computer is xNIX-like Operating System with bash and docker)
 # It mocks out a local DNS service based on BIND9 with no authentication in order to test the Terraform module. 
 #  
 # ---------------------------------------------------------------------------------------------------------------------
 ### Quick Example
 /*
-# JSON File structure
+# Example of JSON File structure
 ├── input-json
 │   ├── subdomain-a.json
 │   └── subdomain-b.json
@@ -64,13 +65,17 @@ provider "dns" {
   }
 }
 
+locals {
+  json_files = fileset("input-json", "*.json") // get all json file names
+}
 # ----------------------------------------
 # Write your Terraform module inputs here
 # ----------------------------------------
+
 resource "dns_a_record_set" "www" {
-  for_each = fileset("input-json", "*.json") // get all json file names  
-  zone = jsondecode(file("input-json/${each.key}")).zone //extract the zone atribute  
-  addresses = jsondecode(file("input-json/${each.key}")).addresses //extract the list of IP addresses
-  ttl =  jsondecode(file("input-json/${each.key}")).ttl // extrat the TTL value
-  name = trimsuffix(each.key,".json") // get the subdomain from the file name 
+  for_each = local.json_files  
+  zone = jsondecode(file("input-json/${each.key}")).zone //extract the value of the key zone from the json file   
+  addresses = jsondecode(file("input-json/${each.key}")).addresses // extract the list of IPs addresses from the json file 
+  ttl =  jsondecode(file("input-json/${each.key}")).ttl // extrat the value of the key TTL from the json file
+  name = trimsuffix(each.key,".json") // get the subdomain from the json file name 
 }
