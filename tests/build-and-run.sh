@@ -38,7 +38,7 @@ SCRIPT_DIR="$(cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P)"
 CONTAINER_NAME="terraform-dns-ns-tests"
 CONTAINER_TAG="v1.0.0"
 EXAMPLE_DOMAIN="example.com"
-# In case you want to run the docker in a remote computer, change the IP for the remote host 
+# In case you want to run the docker in a remote computer, change the IP for the remote host
 HOST_IP="127.0.0.1"
 
 _log "Delete any running/paused Docker container to avoid overlapping"
@@ -53,7 +53,7 @@ docker run -d --privileged --tmpfs /tmp --tmpfs /run \
     -v /etc/localtime:/etc/localtime:ro \
     -v ${SCRIPT_DIR}/dns-server/named.conf.none:/etc/named.conf:ro \
     -p ${HOST_IP}:53:53 \
-    -p ${HOST_IP}:53/udp \
+    -p ${HOST_IP}:53:53/udp \
     --rm --name ${CONTAINER_NAME} --hostname ns.${EXAMPLE_DOMAIN} ${CONTAINER_NAME}:${CONTAINER_TAG}
 
 _log "You can now attach a console to the recently created container by running the following command"
