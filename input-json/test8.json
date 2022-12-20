@@ -1,6 +1,6 @@
 {
-    "cname": "cnametest7.example.com.",
-    "ttl": 700,
+    "cname": "cnametest8.example.com.",
+    "ttl": 800,
     "zone": "example.com.",
     "dns_record_type": "c"
 }

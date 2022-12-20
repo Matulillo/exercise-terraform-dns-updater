@@ -1,7 +1,6 @@
-
 ##Terraform
-# This module creates DNS A-type records defined as JSON files by using DNS Terraform provider. Each json file correspond to one DNS A record and contains all the necessary 
-# attributes.
+# This module creates DNS A-type and CNAME records defined as JSON files by using DNS Terraform provider. Each json file correspond to one DNS type A or CNAME record 
+# and contains all the necessary attributes.
 # The json files are located under the folder ./input-json and works with any number of JSON files, non-json files will be ignored. 
 # The DNS authoritative zone will always be example.com.  
 #
@@ -18,9 +17,10 @@
 │   ├── subdomain-a.json
 │   └── subdomain-b.json
 │   └── (...).json
-## JSON File Name --> DNS Record Name
+## ---------------------------------------------------
+## Example: Record type A
+## JSON File Name --> DNS Record Name 
 ## JSON File Object --> Attributes of a DNS Record
-## Example:
 exercise.json
 {
     "addresses": [
@@ -30,14 +30,34 @@ exercise.json
     "zone": "example.com.",
     "dns_record_type": "a"
 }
+## -----------------------------------------------------
+## Example2: Record type CNAME
+## JSON File Name --> DNS Record Name 
+## JSON File Object --> Attributes of a DNS Record
+exercise2.json
+{
+    "cname" : "bar.example.com."
+    "ttl": 600,
+    "zone": "example.com.",
+    "dns_record_type": "c"
+}
+## ------------------------------------------------------
 
-After processing the above xml and querying the DNS service with host IP 192.168.18.111 , the output should be: 
+## After processing the above jsons files and querying the DNS service with host IP 192.168.18.111 , the output should be: 
 
+## A record:
 [matulo@olivo1 exercise-terraform-dns-updater]$ nslookup exercise.example.com 192.168.18.111
 Server:         192.168.18.111
 Address:        192.168.18.111#53
 Name:   exercise.example.com
 Address: 192.168.200.1
+
+## CNAME record
+[matulo@olivo1 exercise-terraform-dns-updater]$ nslookup -q=cname exercise2.example.com 192.168.18.111
+Server:         192.168.18.111
+Address:        192.168.18.111#53
+exercise2.example.com   canonical name = bar.example.com.
+
 # ---------------------------------------------------------------------------------------------------------------------
 */
 
@@ -64,18 +84,30 @@ provider "dns" {
     server = var.dns_server
   }
 }
+# Local variables
+locals{
+  // get all json file names 
+  json_files = fileset("input-json", "*.json")  
 
-locals {
-  json_files = fileset("input-json", "*.json") // get all json file names
+  // filter json files with A type records
+  a_record_json_files = toset([ for f in local.json_files : f if jsondecode(file("input-json/${f}")).dns_record_type == "a"])
+  
+  // filter json files with cname type records
+  cnames_record_json_files = toset([ for f in local.json_files : f if jsondecode(file("input-json/${f}")).dns_record_type == "c"])
 }
-# ----------------------------------------
-# Write your Terraform module inputs here
-# ----------------------------------------
-
+# A type record resources
 resource "dns_a_record_set" "www" {
-  for_each = local.json_files  
-  zone = jsondecode(file("input-json/${each.key}")).zone //extract the value of the key zone from the json file   
-  addresses = jsondecode(file("input-json/${each.key}")).addresses // extract the list of IPs addresses from the json file 
-  ttl =  jsondecode(file("input-json/${each.key}")).ttl // extrat the value of the key TTL from the json file
-  name = trimsuffix(each.key,".json") // get the subdomain from the json file name 
+  for_each = local.a_record_json_files
+  zone = jsondecode(file("input-json/${each.key}")).zone
+  addresses = jsondecode(file("input-json/${each.key}")).addresses
+  ttl = jsondecode(file("input-json/${each.key}")).ttl
+  name = trimsuffix(each.key,".json")
+}
+# CNAMAE type record resources
+resource "dns_cname_record" "cn" {
+  for_each = local.cnames_record_json_files
+  zone = jsondecode(file("input-json/${each.key}")).zone
+  cname = jsondecode(file("input-json/${each.key}")).cname
+  ttl = jsondecode(file("input-json/${each.key}")).ttl
+  name = trimsuffix(each.key,".json")
 }
