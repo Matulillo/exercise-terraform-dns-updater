@@ -1,6 +1,3 @@
-# ----------------------------------------
-# Write your Terraform module inputs here
-# ----------------------------------------
 variable "dns_server" {
     type = string
     default = "127.0.0.1"
